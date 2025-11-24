@@ -43,21 +43,13 @@ func (l *Launcher) LaunchPipe() (*cdp.Client, error) {
 
 	l.setupUserPreferences()
 
-	args := l.FormatArgs()
-	cmd := exec.Command(bin, args...)
-
-	// Chrome expects specific file descriptors for pipe communication:
-	// FD 3 - Chrome reads from here (we write to it)
-	// FD 4 - Chrome writes to here (we read from it)
-	// Create pipes and pass them as ExtraFiles (which become FD 3, 4, 5... in child)
-
-	// Pipe for us to write, Chrome to read (will be FD 3 in Chrome)
+	// Pipe for us to write, Chrome to read
 	chromeReadPipe, ourWritePipe, err := os.Pipe()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create write pipe: %w", err)
 	}
 
-	// Pipe for Chrome to write, us to read (will be FD 4 in Chrome)
+	// Pipe for Chrome to write, us to read
 	ourReadPipe, chromeWritePipe, err := os.Pipe()
 	if err != nil {
 		chromeReadPipe.Close()
@@ -65,10 +57,23 @@ func (l *Launcher) LaunchPipe() (*cdp.Client, error) {
 		return nil, fmt.Errorf("failed to create read pipe: %w", err)
 	}
 
-	// Pass pipes to Chrome as extra file descriptors (become FD 3 and 4)
-	cmd.ExtraFiles = []*os.File{chromeReadPipe, chromeWritePipe}
+	// Prepare platform-specific pipe config (may modify launcher flags on Windows)
+	// Returns a closure to configure the command
+	configureCmd, err := l.preparePipeConfig(chromeReadPipe, chromeWritePipe)
+	if err != nil {
+		chromeReadPipe.Close()
+		ourWritePipe.Close()
+		ourReadPipe.Close()
+		chromeWritePipe.Close()
+		return nil, err
+	}
+
+	// Format args AFTER preparePipeConfig since Windows adds --remote-debugging-io-pipes
+	args := l.FormatArgs()
+	cmd := exec.Command(bin, args...)
 
 	l.setupCmd(cmd)
+	configureCmd(cmd)
 
 	err = cmd.Start()
 	if err != nil {

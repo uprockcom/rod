@@ -24,6 +24,9 @@ const (
 	// RemoteDebuggingPipe flag. Use pipe instead of port for DevTools Protocol communication.
 	RemoteDebuggingPipe Flag = "remote-debugging-pipe"
 
+	// RemoteDebuggingIoPipes flag. Windows-specific: specifies pipe handles as comma-separated integers.
+	RemoteDebuggingIoPipes Flag = "remote-debugging-io-pipes"
+
 	// NoSandbox flag.
 	NoSandbox Flag = "no-sandbox"
 
