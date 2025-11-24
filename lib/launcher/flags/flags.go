@@ -21,6 +21,9 @@ const (
 	// RemoteDebuggingPort flag.
 	RemoteDebuggingPort Flag = "remote-debugging-port"
 
+	// RemoteDebuggingPipe flag. Use pipe instead of port for DevTools Protocol communication.
+	RemoteDebuggingPipe Flag = "remote-debugging-pipe"
+
 	// NoSandbox flag.
 	NoSandbox Flag = "no-sandbox"
 
