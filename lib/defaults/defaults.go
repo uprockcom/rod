@@ -138,7 +138,7 @@ func init() {
 // ResetWith options and "-rod" command line flag.
 // It will be called in an init() , so you don't have to call it manually.
 // It will try to load the cli flag "-rod" and then the options, the later override the former.
-// If you want to disable the global cli argument flag, set env DISABLE_ROD_FLAG.
+// The global "-rod" CLI flag is disabled by default. Set env ENABLE_ROD_FLAG to enable it.
 // Values are separated by commas, key and value are separated by "=". For example:
 //
 //	go run main.go -rod=show
@@ -147,7 +147,7 @@ func init() {
 func ResetWith(options string) {
 	Reset()
 
-	if _, has := os.LookupEnv("DISABLE_ROD_FLAG"); !has {
+	if _, has := os.LookupEnv("ENABLE_ROD_FLAG"); has {
 		if !flag.Parsed() && flag.Lookup("rod") == nil {
 			flag.String("rod", "", `Set the default value of options used by rod.`)
 		}
